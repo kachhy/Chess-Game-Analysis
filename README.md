@@ -10,3 +10,9 @@ python3 analysis.py -p <Path to PGN> -e <Path to engine> -d <engine search depth
 ```
 4. Finally, the program will create a file called <game>_analyzed.pgn. Upload this file to chess.com's analysis feature, and you should see the move classifications.
 5. Rinse and repeat
+
+## Planned features
+1. Support for "brilliant" moves
+2. MultiPV support
+3. New accuracy curve
+4. Tweaks and other stuff
