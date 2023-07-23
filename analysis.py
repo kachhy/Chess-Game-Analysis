@@ -51,7 +51,7 @@ def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, 
     if iteration == total: 
         print()
 
-
+# accuracy logic by lichess (https://lichess.org/page/accuracy)
 def get_accuracy_of_move(win_b, win_a):
     return 103.1668 * math.exp(-0.04354 * ((win_b) - (win_a))) - 3.1669
 
