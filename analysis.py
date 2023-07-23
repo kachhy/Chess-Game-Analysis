@@ -32,7 +32,6 @@ def parse_args():
     parser.add_argument('-p', '--pgn', type=str, dest="pgn")
     parser.add_argument('-e', '--engine', type=str, dest="engine")
     parser.add_argument('-d', '--depth', type=int, dest="depth", default=18)
-    parser.add_argument('-l', '--low-annotation', action="store_true", dest="low_annotation")
 
     return parser.parse_args()
 
@@ -208,7 +207,8 @@ def analyze(pgn):
     print(f"\nWhite Accuracy: {round(get_accuracy_of_cp((centpawn_loss[1])), 1)}\nBlack Accuracy: {round(get_accuracy_of_cp((centpawn_loss[0])), 1)}")
     print(f"White Winchance Loss: {round(centpawn_loss[1])}\nBlack Winchance Loss: {round(centpawn_loss[0])}")
 
-    print(game_annot, file=open("annotated.pgn", "w"), end="\n\n")
+    cleaned_name = args.pgn.replace(".pgn", "")
+    print(game_annot, file=open(f"{cleaned_name}_analyzed.pgn", "w"), end="\n\n")
     engine.close()
 
 
