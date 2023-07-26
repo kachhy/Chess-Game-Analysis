@@ -176,7 +176,7 @@ def analyze(pgn):
             main_node.comment = f"[%c_effect {final_sq};square;{final_sq};type;Good;persistent;true]"
         elif acc > 70:
             main_node.comment = f"[%c_effect {final_sq};square;{final_sq};type;Inaccuracy;persistent;true]"
-        elif acc > 35:
+        elif acc > 20:
             if index > 3 and abs(analyzed_moves[index - 2].score - i.score) < 50 and abs(analyzed_moves[index - 1].score - i.score) > 60:
                 main_node.comment = f"[%c_effect {final_sq};square;{final_sq};type;Miss;persistent;true]"
             else:
