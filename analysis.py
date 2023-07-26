@@ -125,7 +125,7 @@ def analyze(pgn):
     
     # now assign comments to all of the moves
     previous_score = 0
-    centpawn_loss = [0, 0]
+    winchance_loss = [0, 0]
     centpawn_n = [0, 0]
     accuracy = [[], []]
     main_node = game_annot.add_variation(analyzed_moves[0].move)
@@ -155,7 +155,7 @@ def analyze(pgn):
         if i.best:
             centpawn_n[i.turn] += 1
         else:
-            centpawn_loss[i.turn] += calculate_wp(max((previous_score - i.score) if i.turn else -(previous_score - i.score), 0)) - 50
+            winchance_loss[i.turn] += calculate_wp(max((previous_score - i.score) if i.turn else -(previous_score - i.score), 0)) - 50
             
             centpawn_n[i.turn] += 1
         
@@ -193,8 +193,8 @@ def analyze(pgn):
         index += 1
     
     # average centipawn loss
-    centpawn_loss[0] /= centpawn_n[0]
-    centpawn_loss[1] /= centpawn_n[1]
+    winchance_loss[0] /= centpawn_n[0]
+    winchance_loss[1] /= centpawn_n[1]
     
     # average accury values
     b_acc = 0
@@ -205,8 +205,8 @@ def analyze(pgn):
     for i in accuracy[1]: w_acc += i
     w_acc /= len(accuracy[1])
 
-    print(f"\nWhite Accuracy: {round(get_accuracy_of_cp((centpawn_loss[1])), 1)}\nBlack Accuracy: {round(get_accuracy_of_cp((centpawn_loss[0])), 1)}")
-    print(f"White Winchance Loss: {round(centpawn_loss[1])}\nBlack Winchance Loss: {round(centpawn_loss[0])}")
+    print(f"\nWhite Accuracy: {round(get_accuracy_of_cp((winchance_loss[1])), 1)}\nBlack Accuracy: {round(get_accuracy_of_cp((winchance_loss[0])), 1)}")
+    print(f"White Winchance Loss: {round(winchance_loss[1])}\nBlack Winchance Loss: {round(winchance_loss[0])}")
 
     cleaned_name = args.pgn.replace(".pgn", "")
     print(game_annot, file=open(f"{cleaned_name}_analyzed.pgn", "w"), end="\n\n")
