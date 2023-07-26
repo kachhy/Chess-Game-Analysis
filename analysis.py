@@ -161,6 +161,8 @@ def analyze(pgn):
         
         accuracy[i.turn].append(acc)
 
+        had_improvement_opportunity = abs(analyzed_moves[index - 1].score - i.score) > 50
+
         if i.best:
             # check special case (aka great move)
             if index > 2: 
@@ -177,12 +179,12 @@ def analyze(pgn):
         elif acc > 70:
             main_node.comment = f"[%c_effect {final_sq};square;{final_sq};type;Inaccuracy;persistent;true]"
         elif acc > 20:
-            if index > 3 and abs(analyzed_moves[index - 2].score - i.score) < 50 and abs(analyzed_moves[index - 1].score - i.score) > 60:
+            if index > 3 and abs(analyzed_moves[index - 2].score - i.score) < 50 and had_improvement_opportunity:
                 main_node.comment = f"[%c_effect {final_sq};square;{final_sq};type;Miss;persistent;true]"
             else:
                 main_node.comment = f"[%c_effect {final_sq};square;{final_sq};type;Mistake;persistent;true]"
         else:
-            if index > 3 and abs(analyzed_moves[index - 2].score - i.score) < 50 and abs(analyzed_moves[index - 1].score - i.score) > 60:
+            if index > 3 and abs(analyzed_moves[index - 2].score - i.score) < 50 and had_improvement_opportunity:
                 main_node.comment = f"[%c_effect {final_sq};square;{final_sq};type;Miss;persistent;true]"
             else:
                 main_node.comment = f"[%c_effect {final_sq};square;{final_sq};type;Blunder;persistent;true]"
