@@ -145,7 +145,8 @@ def analyze(pgn):
             continue
         
         # get the accuracy of the move
-        if i.best:
+        if i.best or round(previous_score, 2) == round(i.score, 2):
+            i.best = True # update this if the move was equal to the best move
             acc = 100
         elif i.turn:
             acc = get_accuracy_of_move(calculate_wp(previous_score), calculate_wp(min(i.score, previous_score))) 
