@@ -133,38 +133,38 @@ def analyze(pgn):
     main_node.comment =  f"[%c_effect {final_sq};square;{final_sq};type;Book;persistent;true]"
     index = 0
     
-    for i in analyzed_moves[1:]:
-        final_sq = chess.square_name(i.move.to_square)
-        main_node = main_node.add_main_variation(i.move)
+    for analyzed_move in analyzed_moves[1:]:
+        final_sq = chess.square_name(analyzed_move.move.to_square)
+        main_node = main_node.add_main_variation(analyzed_move.move)
 
-        if i.book:
+        if analyzed_move.book:
             main_node.comment = f"[%c_effect {final_sq};square;{final_sq};type;Book;persistent;true]"
             continue
-        elif i.forced:
+        elif analyzed_move.forced:
             main_node.comment = f"[%c_effect {final_sq};square;{final_sq};type;Forced;persistent;true]"
             continue
         
         # get the accuracy of the move
-        if i.best or round(previous_score, 2) == round(i.score, 2):
-            i.best = True # update this if the move was equal to the best move
+        if analyzed_move.best or round(previous_score, 2) == round(analyzed_move.score, 2):
+            analyzed_move.best = True # update this if the move was equal to the best move
             acc = 100
-        elif i.turn:
-            acc = get_accuracy_of_move(calculate_wp(previous_score), calculate_wp(min(i.score, previous_score))) 
+        elif analyzed_move.turn:
+            acc = get_accuracy_of_move(calculate_wp(previous_score), calculate_wp(min(analyzed_move.score, previous_score))) 
         else:
-            acc = get_accuracy_of_move(calculate_wp(-previous_score), calculate_wp(-max(i.score, previous_score)))
+            acc = get_accuracy_of_move(calculate_wp(-previous_score), calculate_wp(-max(analyzed_move.score, previous_score)))
 
-        if i.best:
-            centpawn_n[i.turn] += 1
+        if analyzed_move.best:
+            centpawn_n[analyzed_move.turn] += 1
         else:
-            winchance_loss[i.turn] += calculate_wp(max((previous_score - i.score) if i.turn else -(previous_score - i.score), 0)) - 50
+            winchance_loss[analyzed_move.turn] += calculate_wp(max((previous_score - analyzed_move.score) if analyzed_move.turn else -(previous_score - analyzed_move.score), 0)) - 50
             
-            centpawn_n[i.turn] += 1
+            centpawn_n[analyzed_move.turn] += 1
         
-        accuracy[i.turn].append(acc)
+        accuracy[analyzed_move.turn].append(acc)
 
-        had_improvement_opportunity = abs(analyzed_moves[index - 1].score - i.score) > 50
+        had_improvement_opportunity = abs(analyzed_moves[index - 1].score - analyzed_move.score) > 50
 
-        if i.best:
+        if analyzed_move.best:
             # check special case (aka great move)
             if index > 2: 
                 if abs(analyzed_moves[index - 2].score - analyzed_moves[index - 1].score) > 150:
@@ -180,17 +180,17 @@ def analyze(pgn):
         elif acc > 70:
             main_node.comment = f"[%c_effect {final_sq};square;{final_sq};type;Inaccuracy;persistent;true]"
         elif acc > 20:
-            if index > 3 and abs(analyzed_moves[index - 2].score - i.score) < 50 and had_improvement_opportunity:
+            if index > 3 and abs(analyzed_moves[index - 2].score - analyzed_move.score) < 50 and had_improvement_opportunity:
                 main_node.comment = f"[%c_effect {final_sq};square;{final_sq};type;Miss;persistent;true]"
             else:
                 main_node.comment = f"[%c_effect {final_sq};square;{final_sq};type;Mistake;persistent;true]"
         else:
-            if index > 3 and abs(analyzed_moves[index - 2].score - i.score) < 50 and had_improvement_opportunity:
+            if index > 3 and abs(analyzed_moves[index - 2].score - analyzed_move.score) < 50 and had_improvement_opportunity:
                 main_node.comment = f"[%c_effect {final_sq};square;{final_sq};type;Miss;persistent;true]"
             else:
                 main_node.comment = f"[%c_effect {final_sq};square;{final_sq};type;Blunder;persistent;true]"
 
-        previous_score = i.score
+        previous_score = analyzed_move.score
         index += 1
     
     # average centipawn loss
