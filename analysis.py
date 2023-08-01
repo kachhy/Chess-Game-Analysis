@@ -197,7 +197,7 @@ def analyze(pgn):
     winchance_loss[0] /= centpawn_n[0]
     winchance_loss[1] /= centpawn_n[1]
     
-    # average accury values
+    # average accuracy values
     b_acc = 0
     for i in accuracy[0]: b_acc += i
     b_acc /= len(accuracy[0])
