@@ -173,9 +173,9 @@ def analyze(pgn):
                     main_node.comment = f"[%c_effect {final_sq};square;{final_sq};type;BestMove;persistent;true]"
             else:
                 main_node.comment = f"[%c_effect {final_sq};square;{final_sq};type;BestMove;persistent;true]"
-        elif acc > 95:
+        elif acc > 92:
             main_node.comment = f"[%c_effect {final_sq};square;{final_sq};type;Excellent;persistent;true]"
-        elif acc > 87:
+        elif acc > 80:
             main_node.comment = f"[%c_effect {final_sq};square;{final_sq};type;Good;persistent;true]"
         elif acc > 70:
             main_node.comment = f"[%c_effect {final_sq};square;{final_sq};type;Inaccuracy;persistent;true]"
