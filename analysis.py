@@ -134,7 +134,7 @@ def analyze(pgn):
     accuracy = [[], []]
     main_node = game_annot.add_variation(analyzed_moves[0].move)
     final_sq = chess.square_name(analyzed_moves[0].move.to_square)
-    main_node.comment =  f"[%c_effect {final_sq};square;{final_sq};type;Book;persistent;true]"
+    main_node.comment = f"[%c_effect {final_sq};square;{final_sq};type;Book;persistent;true]"
     index = 0
     
     for analyzed_move in analyzed_moves[1:]:
