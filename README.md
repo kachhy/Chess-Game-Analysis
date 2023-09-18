@@ -16,3 +16,4 @@ python3 analysis.py -p <Path to PGN> -e <Path to engine> -d <engine search depth
 2. MultiPV support
 3. New accuracy curve
 4. Tweaks and other stuff
+5. Support for multi game PGNs
