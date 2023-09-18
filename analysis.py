@@ -123,6 +123,9 @@ def analyze(pgn):
             move=move
         ))
     
+    # set progress bar to 100
+    printProgressBar(1, 1, suffix="             ")
+    
     # now assign comments to all of the moves
     previous_score = 0
     winchance_loss = [0, 0]
