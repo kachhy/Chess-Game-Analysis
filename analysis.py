@@ -90,7 +90,7 @@ def apply_elo_model(acc_w, acc_b):
     b += x
     b /= 2
     
-    print(f"White Performance: {w}\nBlack Performance: {b}")
+    print(f"White Performance: {round(w)}\nBlack Performance: {round(b)}")
 
 
 def analyze(pgn):
@@ -108,7 +108,6 @@ def analyze(pgn):
     in_book = True
     for move in game.mainline():
         turn = board.turn
-        print(in_book)
 
         book = False
         if in_book:
