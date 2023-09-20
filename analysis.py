@@ -145,7 +145,7 @@ def analyze(pgn):
         
         score = step.info["score"].white().score(mate_score=MATE_THRES)
 
-        printProgressBar(len(analyzed_moves), len(list(game.mainline_moves())), suffix=f"{move} - {next_best_move}")
+        printProgressBar(len(analyzed_moves), len(list(game.mainline_moves())), suffix=f"{move} - {next_best_move}   ")
 
         best = next_best_move == move
 
