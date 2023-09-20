@@ -23,13 +23,15 @@ class AnalyzedMove:
                 best: bool,
                 turn : int,
                 forced : bool,
-                move : chess.Move):
+                move : chess.Move,
+                comment : str):
         self.score = score
         self.book = book
         self.best = best
         self.turn = turn
         self.forced = forced
         self.move = move
+        self.comment = comment
 
 
 def parse_args():
@@ -104,7 +106,7 @@ def analyze(pgn):
     # analyze all the moves
     next_best_move = None
     in_book = True
-    for move in game.mainline_moves():
+    for move in game.mainline():
         turn = board.turn
 
         book = False
@@ -118,7 +120,7 @@ def analyze(pgn):
 
         forced = len(list(board.legal_moves)) == 1
 
-        board.push(move)
+        board.push(move.move)
         
         if board.is_checkmate():
             analyzed_moves.append(AnalyzedMove(
@@ -127,7 +129,8 @@ def analyze(pgn):
                 best=True,
                 turn=turn,
                 forced=forced,
-                move=move
+                move=move.move,
+                comment = move.comment
             ))
             break
         elif book:
@@ -137,7 +140,8 @@ def analyze(pgn):
                 best=True,
                 turn=turn,
                 forced=forced,
-                move=move
+                move=move.move,
+                comment = move.comment
             ))
             continue
 
@@ -145,9 +149,9 @@ def analyze(pgn):
         
         score = step.info["score"].white().score(mate_score=MATE_THRES)
 
-        printProgressBar(len(analyzed_moves), len(list(game.mainline_moves())), suffix=f"{move} - {next_best_move}   ")
+        printProgressBar(len(analyzed_moves), len(list(game.mainline_moves())), suffix=f"{move.move} - {(next_best_move if next_best_move is not None else None)}   ")
 
-        best = next_best_move == move
+        best = next_best_move == move.move
 
         next_best_move = step.move
         
@@ -157,7 +161,8 @@ def analyze(pgn):
             best=best, 
             turn=turn,
             forced=forced,
-            move=move
+            move=move.move,
+            comment = move.comment
         ))
     
     # set progress bar to 100
@@ -170,7 +175,7 @@ def analyze(pgn):
     accuracy = [[], []]
     main_node = game_annot.add_variation(analyzed_moves[0].move)
     final_sq = chess.square_name(analyzed_moves[0].move.to_square)
-    main_node.comment = f"[%c_effect {final_sq};square;{final_sq};type;Book;persistent;true]"
+    main_node.comment = f"{analyzed_moves[0].comment}  [%c_effect {final_sq};square;{final_sq};type;Book;persistent;true]"
     index = 0
     
     for analyzed_move in analyzed_moves[1:]:
@@ -178,10 +183,10 @@ def analyze(pgn):
         main_node = main_node.add_main_variation(analyzed_move.move)
 
         if analyzed_move.book:
-            main_node.comment = f"[%c_effect {final_sq};square;{final_sq};type;Book;persistent;true]"
+            main_node.comment = f"{analyzed_move.comment} [%c_effect {final_sq};square;{final_sq};type;Book;persistent;true]"
             continue
         elif analyzed_move.forced:
-            main_node.comment = f"[%c_effect {final_sq};square;{final_sq};type;Forced;persistent;true]"
+            main_node.comment = f"{analyzed_move.comment} [%c_effect {final_sq};square;{final_sq};type;Forced;persistent;true]"
             continue
         
         # get the accuracy of the move
@@ -208,27 +213,27 @@ def analyze(pgn):
             # check special case (aka great move)
             if index > 2: 
                 if abs(analyzed_moves[index - 2].score - analyzed_moves[index - 1].score) > 150:
-                    main_node.comment = f"[%c_effect {final_sq};square;{final_sq};type;GreatFind;persistent;true]"
+                    main_node.comment = f"{analyzed_move.comment} [%c_effect {final_sq};square;{final_sq};type;GreatFind;persistent;true]"
                 else:
-                    main_node.comment = f"[%c_effect {final_sq};square;{final_sq};type;BestMove;persistent;true]"
+                    main_node.comment = f"{analyzed_move.comment} [%c_effect {final_sq};square;{final_sq};type;BestMove;persistent;true]"
             else:
-                main_node.comment = f"[%c_effect {final_sq};square;{final_sq};type;BestMove;persistent;true]"
+                main_node.comment = f"{analyzed_move.comment} [%c_effect {final_sq};square;{final_sq};type;BestMove;persistent;true]"
         elif acc > 92:
-            main_node.comment = f"[%c_effect {final_sq};square;{final_sq};type;Excellent;persistent;true]"
+            main_node.comment = f"{analyzed_move.comment} [%c_effect {final_sq};square;{final_sq};type;Excellent;persistent;true]"
         elif acc > 80:
-            main_node.comment = f"[%c_effect {final_sq};square;{final_sq};type;Good;persistent;true]"
+            main_node.comment = f"{analyzed_move.comment} [%c_effect {final_sq};square;{final_sq};type;Good;persistent;true]"
         elif acc > 70:
-            main_node.comment = f"[%c_effect {final_sq};square;{final_sq};type;Inaccuracy;persistent;true]"
+            main_node.comment = f"{analyzed_move.comment} [%c_effect {final_sq};square;{final_sq};type;Inaccuracy;persistent;true]"
         elif acc > 20:
             if index > 3 and abs(analyzed_moves[index - 2].score - analyzed_move.score) < 50 and had_improvement_opportunity:
-                main_node.comment = f"[%c_effect {final_sq};square;{final_sq};type;Miss;persistent;true]"
+                main_node.comment = f"{analyzed_move.comment} [%c_effect {final_sq};square;{final_sq};type;Miss;persistent;true]"
             else:
-                main_node.comment = f"[%c_effect {final_sq};square;{final_sq};type;Mistake;persistent;true]"
+                main_node.comment = f"{analyzed_move.comment} [%c_effect {final_sq};square;{final_sq};type;Mistake;persistent;true]"
         else:
             if index > 3 and abs(analyzed_moves[index - 2].score - analyzed_move.score) < 50 and had_improvement_opportunity:
-                main_node.comment = f"[%c_effect {final_sq};square;{final_sq};type;Miss;persistent;true]"
+                main_node.comment = f"{analyzed_move.comment} [%c_effect {final_sq};square;{final_sq};type;Miss;persistent;true]"
             else:
-                main_node.comment = f"[%c_effect {final_sq};square;{final_sq};type;Blunder;persistent;true]"
+                main_node.comment = f"{analyzed_move.comment} [%c_effect {final_sq};square;{final_sq};type;Blunder;persistent;true]"
 
         previous_score = analyzed_move.score
         index += 1
