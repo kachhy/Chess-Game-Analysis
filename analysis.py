@@ -238,12 +238,10 @@ def analyze(pgn):
     winchance_loss[1] /= centpawn_n[1]
     
     # average accuracy values
-    b_acc = 0
+    b_acc, w_acc = 0, 0
+    for i in accuracy[1]: w_acc += i
     for i in accuracy[0]: b_acc += i
     b_acc /= len(accuracy[0])
-
-    w_acc = 0
-    for i in accuracy[1]: w_acc += i
     w_acc /= len(accuracy[1])
 
     print(f"\nWhite Accuracy: {round(get_accuracy_of_cp((winchance_loss[1])), 1)}\nBlack Accuracy: {round(get_accuracy_of_cp((winchance_loss[0])), 1)}")
