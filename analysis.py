@@ -40,6 +40,7 @@ def parse_args():
     parser.add_argument('-p', '--pgn', type=str, dest="pgn")
     parser.add_argument('-e', '--engine', type=str, dest="engine")
     parser.add_argument('-d', '--depth', type=int, dest="depth", default=18)
+    parser.add_argument('-m', '--minimal-annotations', action="store_true", dest="minimal")
 
     return parser.parse_args()
 
@@ -175,17 +176,17 @@ def analyze(pgn):
     accuracy = [[], []]
     main_node = game_annot.add_variation(analyzed_moves[0].move)
     final_sq = chess.square_name(analyzed_moves[0].move.to_square)
-    main_node.comment = f"{analyzed_moves[0].comment}  [%c_effect {final_sq};square;{final_sq};type;Book;persistent;true]"
+    main_node.comment = f"{analyzed_moves[0].comment}" + f" [%c_effect {final_sq};square;{final_sq};type;Book;persistent;true]" if not args.minimal else ""
     index = 0
     
     for analyzed_move in analyzed_moves[1:]:
         final_sq = chess.square_name(analyzed_move.move.to_square)
         main_node = main_node.add_main_variation(analyzed_move.move)
 
-        if analyzed_move.book:
+        if not args.minimal and analyzed_move.book:
             main_node.comment = f"{analyzed_move.comment} [%c_effect {final_sq};square;{final_sq};type;Book;persistent;true]"
             continue
-        elif analyzed_move.forced:
+        elif not args.minimal and analyzed_move.forced:
             main_node.comment = f"{analyzed_move.comment} [%c_effect {final_sq};square;{final_sq};type;Forced;persistent;true]"
             continue
         
@@ -215,16 +216,16 @@ def analyze(pgn):
                 if abs(analyzed_moves[index - 2].score - analyzed_moves[index - 1].score) > 150:
                     main_node.comment = f"{analyzed_move.comment} [%c_effect {final_sq};square;{final_sq};type;GreatFind;persistent;true]"
                 else:
-                    main_node.comment = f"{analyzed_move.comment} [%c_effect {final_sq};square;{final_sq};type;BestMove;persistent;true]"
+                    main_node.comment = f"{analyzed_move.comment}" + f" [%c_effect {final_sq};square;{final_sq};type;BestMove;persistent;true]" if not args.minimal else ""
             else:
-                main_node.comment = f"{analyzed_move.comment} [%c_effect {final_sq};square;{final_sq};type;BestMove;persistent;true]"
+                main_node.comment = f"{analyzed_move.comment}" + f" [%c_effect {final_sq};square;{final_sq};type;BestMove;persistent;true]" if not args.minimal else ""
         elif acc > 92:
-            main_node.comment = f"{analyzed_move.comment} [%c_effect {final_sq};square;{final_sq};type;Excellent;persistent;true]"
+            main_node.comment = f"{analyzed_move.comment}" + f" [%c_effect {final_sq};square;{final_sq};type;Excellent;persistent;true]" if not args.minimal else ""
         elif acc > 80:
-            main_node.comment = f"{analyzed_move.comment} [%c_effect {final_sq};square;{final_sq};type;Good;persistent;true]"
-        elif acc > 70:
+            main_node.comment = f"{analyzed_move.comment}" + f" [%c_effect {final_sq};square;{final_sq};type;Good;persistent;true]" if not args.minimal else ""
+        elif acc > 70 and acc <= 80:
             main_node.comment = f"{analyzed_move.comment} [%c_effect {final_sq};square;{final_sq};type;Inaccuracy;persistent;true]"
-        elif acc > 20:
+        elif acc > 20 and acc <= 70:
             if index > 3 and abs(analyzed_moves[index - 2].score - analyzed_move.score) < 50 and had_improvement_opportunity:
                 main_node.comment = f"{analyzed_move.comment} [%c_effect {final_sq};square;{final_sq};type;Miss;persistent;true]"
             else:
