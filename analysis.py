@@ -19,14 +19,14 @@ C = -99663
 class AnalyzedMove:
     def __init__(self,
                 score: int, 
-                book : bool,
+                book_mv : bool,
                 best: bool,
                 turn : int,
                 forced : bool,
                 move : chess.Move,
                 comment : str):
         self.score = score
-        self.book = book
+        self.book = book_mv
         self.best = best
         self.turn = turn
         self.forced = forced
@@ -108,11 +108,12 @@ def analyze(pgn):
     in_book = True
     for move in game.mainline():
         turn = board.turn
+        print(in_book)
 
         book = False
         if in_book:
             for i in opening_book.find_all(board):
-                if i.move == move:
+                if i.move == move.move:
                     book = True
                     break
             if not book:
@@ -125,7 +126,7 @@ def analyze(pgn):
         if board.is_checkmate():
             analyzed_moves.append(AnalyzedMove(
                 score=0, 
-                book=book,
+                book_mv=book,
                 best=True,
                 turn=turn,
                 forced=forced,
@@ -133,17 +134,6 @@ def analyze(pgn):
                 comment = move.comment
             ))
             break
-        elif book:
-            analyzed_moves.append(AnalyzedMove(
-                score=0, 
-                book=True,
-                best=True,
-                turn=turn,
-                forced=forced,
-                move=move.move,
-                comment = move.comment
-            ))
-            continue
 
         step = engine.play(board, chess.engine.Limit(depth=args.depth), info=chess.engine.Info.ALL)
         
@@ -157,7 +147,7 @@ def analyze(pgn):
         
         analyzed_moves.append(AnalyzedMove(
             score=score, 
-            book=book, 
+            book_mv=book, 
             best=best, 
             turn=turn,
             forced=forced,
