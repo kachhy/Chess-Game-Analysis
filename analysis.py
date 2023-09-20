@@ -4,10 +4,16 @@ import chess.polyglot
 import chess.pgn
 import argparse
 import math
+import json
 
 
 MATE_THRES = 32000
 BOOK_PATH = "Titans.bin"
+
+# variables related to the elo quadratic
+A = -10.511
+B = 2080 # 2083.7 (generated - too high)
+C = -99663
 
 
 class AnalyzedMove:
@@ -63,6 +69,28 @@ def get_accuracy_of_cp(a):
 
 def calculate_wp(centipawns):
     return 50 + 50 * (2 / (1 + math.exp(-0.00368208 * centipawns)) - 1)
+
+def get_model_elo(acc):
+    return A * (acc ** 2) + B * acc + C
+
+def apply_elo_model(acc_w, acc_b):
+    a_acc = (acc_w + acc_b) / 2
+    with open("elo_model_1.json", 'r') as m:
+        model = json.load(m)
+
+        x = max(get_model_elo(a_acc), 100)
+
+        # get our white/black bound elo
+        w = max(get_model_elo(acc_w), 100)
+        b = max(get_model_elo(acc_b), 100)
+        
+        w += x
+        w /= 2
+        
+        b += x
+        b /= 2
+        
+        print(f"White Performance: {w}\nBlack Performance: {b}")
 
 
 def analyze(pgn):
@@ -212,6 +240,8 @@ def analyze(pgn):
 
     print(f"\nWhite Accuracy: {round(get_accuracy_of_cp((winchance_loss[1])), 1)}\nBlack Accuracy: {round(get_accuracy_of_cp((winchance_loss[0])), 1)}")
     print(f"White Winchance Loss: {round(winchance_loss[1])}\nBlack Winchance Loss: {round(winchance_loss[0])}")
+
+    apply_elo_model(get_accuracy_of_cp((winchance_loss[1])), get_accuracy_of_cp((winchance_loss[0])))
 
     cleaned_name = args.pgn.replace(".pgn", "")
     print(game_annot, file=open(f"{cleaned_name}_analyzed.pgn", "w"), end="\n\n")
