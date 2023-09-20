@@ -75,22 +75,20 @@ def get_model_elo(acc):
 
 def apply_elo_model(acc_w, acc_b):
     a_acc = (acc_w + acc_b) / 2
-    with open("elo_model_1.json", 'r') as m:
-        model = json.load(m)
+    
+    x = max(get_model_elo(a_acc), 100)
 
-        x = max(get_model_elo(a_acc), 100)
-
-        # get our white/black bound elo
-        w = max(get_model_elo(acc_w), 100)
-        b = max(get_model_elo(acc_b), 100)
-        
-        w += x
-        w /= 2
-        
-        b += x
-        b /= 2
-        
-        print(f"White Performance: {w}\nBlack Performance: {b}")
+    # get our white/black bound elo
+    w = max(get_model_elo(acc_w), 100)
+    b = max(get_model_elo(acc_b), 100)
+    
+    w += x
+    w /= 2
+    
+    b += x
+    b /= 2
+    
+    print(f"White Performance: {w}\nBlack Performance: {b}")
 
 
 def analyze(pgn):
@@ -132,7 +130,17 @@ def analyze(pgn):
                 move=move
             ))
             break
-        
+        elif book:
+            analyzed_moves.append(AnalyzedMove(
+                score=0, 
+                book=True,
+                best=True,
+                turn=turn,
+                forced=forced,
+                move=move
+            ))
+            continue
+
         step = engine.play(board, chess.engine.Limit(depth=args.depth), info=chess.engine.Info.ALL)
         
         score = step.info["score"].white().score(mate_score=MATE_THRES)
