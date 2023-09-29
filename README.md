@@ -11,7 +11,7 @@ python3 analysis.py -p <Path to PGN> -e <Path to engine> -d <engine search depth
 4. Finally, the program will create a file called <game>_analyzed.pgn. Upload this file to chess.com's analysis feature, and you should see the move classifications.
 5. Rinse and repeat
 
-# About Single Game Performance/Elo Estimation (SGP)
+## About Single Game Performance/Elo Estimation (SGP)
 This is a very WIP feature that allows for the estimation of game performance purely by accuracy against a the computer.
 Assuming that you are analyzing with a strong engine, the maximum "Elo" should be around 3500-3600 with 100% accuracy.
 This is not a measure of the rating that you are on any platform/OTB organization in any way. This is simply how well you performed relative to your opponent in a single game.
