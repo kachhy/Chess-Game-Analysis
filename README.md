@@ -18,6 +18,8 @@ This is not a measure of the rating that you are on any platform/OTB organizatio
 As of now, this model is generated from ~16.6m Lichess games ([Lichess Database](https://database.lichess.org)) across many rating levels. In the future, I intend to add more factors, such as number of blunders and mistakes to determine a better performance rating (for example if you accidentally blunder mate in 1 in a game that you were playing well in before).
 This feature is in no way based upon the rating present in the original PGN. 
 
+In the future, this model will be using a linear regression.
+
 ## Planned features
 1. Support for "brilliant" moves
 2. MultiPV support
