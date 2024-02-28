@@ -24,7 +24,8 @@ class AnalyzedMove:
                 turn : int,
                 forced : bool,
                 move : chess.Move,
-                comment : str):
+                comment : str,
+                mpv_s : int):
         self.score = score
         self.book = book_mv
         self.best = best
@@ -32,6 +33,7 @@ class AnalyzedMove:
         self.forced = forced
         self.move = move
         self.comment = comment
+        self.mpv_s = mpv_s
 
 
 def parse_args():
@@ -40,6 +42,7 @@ def parse_args():
     parser.add_argument('-p', '--pgn', type=str, dest="pgn")
     parser.add_argument('-e', '--engine', type=str, dest="engine")
     parser.add_argument('-d', '--depth', type=int, dest="depth", default=18)
+    parser.add_argument('-m', '--multipv', action="store_true", dest="mpv")
 
     return parser.parse_args()
 
@@ -130,7 +133,8 @@ def analyze(pgn):
                 turn=turn,
                 forced=forced,
                 move=move.move,
-                comment = move.comment
+                comment = move.comment,
+                mpv_s = 0
             ))
             break
 
@@ -143,16 +147,34 @@ def analyze(pgn):
         best = next_best_move == move.move
 
         next_best_move = step.move
-        
-        analyzed_moves.append(AnalyzedMove(
-            score=score, 
-            book_mv=book, 
-            best=best, 
-            turn=turn,
-            forced=forced,
-            move=move.move,
-            comment = move.comment
-        ))
+
+        if args.mpv and not forced:
+            mpv = engine.analyse(board, chess.engine.Limit(depth=args.depth), multipv=2, info=chess.engine.Info.ALL)
+
+            mpv_score = 0 if len(mpv) == 1 else mpv[0]["score"].white().score(mate_score=MATE_THRES) - mpv[1]["score"].white().score(mate_score=MATE_THRES)
+            print(mpv_score)
+
+            analyzed_moves.append(AnalyzedMove(
+                score=score, 
+                book_mv=book, 
+                best=best, 
+                turn=turn,
+                forced=forced,
+                move=move.move,
+                comment = move.comment,
+                mpv_s=mpv_score
+            ))
+        else:
+            analyzed_moves.append(AnalyzedMove(
+                score=score, 
+                book_mv=book, 
+                best=best, 
+                turn=turn,
+                forced=forced,
+                move=move.move,
+                comment = move.comment,
+                mpv_s=0
+            ))
     
     # set progress bar to 100
     printProgressBar(1, 1, suffix="             ")
@@ -196,15 +218,10 @@ def analyze(pgn):
         
         accuracy[analyzed_move.turn].append(acc)
 
-        had_improvement_opportunity = abs(analyzed_moves[index - 1].score - analyzed_move.score) > 50
-
         if analyzed_move.best:
             # check special case (aka great move)
-            if index > 2: 
-                if abs(analyzed_moves[index - 2].score - analyzed_moves[index - 1].score) > 150:
-                    main_node.comment = f"{analyzed_move.comment} [%c_effect {final_sq};square;{final_sq};type;GreatFind;persistent;true]"
-                else:
-                    main_node.comment = f"{analyzed_move.comment} [%c_effect {final_sq};square;{final_sq};type;BestMove;persistent;true]"
+            if args.mpv and abs(analyzed_move.mpv_s) > 50:
+                main_node.comment = f"{analyzed_move.comment} [%c_effect {final_sq};square;{final_sq};type;GreatFind;persistent;true]"
             else:
                 main_node.comment = f"{analyzed_move.comment} [%c_effect {final_sq};square;{final_sq};type;BestMove;persistent;true]"
         elif acc > 92:
@@ -214,12 +231,12 @@ def analyze(pgn):
         elif acc > 70:
             main_node.comment = f"{analyzed_move.comment} [%c_effect {final_sq};square;{final_sq};type;Inaccuracy;persistent;true]"
         elif acc > 20:
-            if index > 3 and abs(analyzed_moves[index - 2].score - analyzed_move.score) < 50 and had_improvement_opportunity:
+            if args.mpv and abs(analyzed_move.mpv_s) > 70:
                 main_node.comment = f"{analyzed_move.comment} [%c_effect {final_sq};square;{final_sq};type;Miss;persistent;true]"
             else:
                 main_node.comment = f"{analyzed_move.comment} [%c_effect {final_sq};square;{final_sq};type;Mistake;persistent;true]"
         else:
-            if index > 3 and abs(analyzed_moves[index - 2].score - analyzed_move.score) < 50 and had_improvement_opportunity:
+            if args.mpv and abs(analyzed_move.mpv_s) > 70:
                 main_node.comment = f"{analyzed_move.comment} [%c_effect {final_sq};square;{final_sq};type;Miss;persistent;true]"
             else:
                 main_node.comment = f"{analyzed_move.comment} [%c_effect {final_sq};square;{final_sq};type;Blunder;persistent;true]"
