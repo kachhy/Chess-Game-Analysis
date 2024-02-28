@@ -11,12 +11,14 @@ python3 analysis.py -p <Path to PGN> -e <Path to engine> -d <engine search depth
 4. Finally, the program will create a file called <game>_analyzed.pgn. Upload this file to chess.com's analysis feature, and you should see the move classifications.
 5. Rinse and repeat
 
-# About Single Game Performance/Elo Estimation (SGP)
+## About Single Game Performance/Elo Estimation (SGP)
 This is a very WIP feature that allows for the estimation of game performance purely by accuracy against a the computer.
 Assuming that you are analyzing with a strong engine, the maximum "Elo" should be around 3500-3600 with 100% accuracy.
 This is not a measure of the rating that you are on any platform/OTB organization in any way. This is simply how well you performed relative to your opponent in a single game.
 As of now, this quadratic model is generated from ~16.6m Lichess games ([Lichess Database](https://database.lichess.org)) across many rating levels. In the future, I intend to add more factors, such as number of blunders and mistakes to determine a better performance rating (for example if you accidentally blunder mate in 1 in a game that you were playing well in before). Included you should also find a model.json, which are the points that have been used to generate the trendline equation.
 #### This feature is in no way based upon the rating present in the original PGN. 
+
+In the future, this model will be using a linear regression.
 
 ## Planned features
 1. Support for "brilliant" moves
