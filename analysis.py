@@ -6,15 +6,13 @@ import argparse
 import math
 import json
 
-
 MATE_THRES = 32000
 BOOK_PATH = "Titans.bin"
 
-# variables related to the elo quadratic
+# Coefficients for the elo quadratic
 A = -10.511
 B = 2080 # 2083.7 (generated - too high)
 C = -99663
-
 
 class AnalyzedMove:
     def __init__(self,
@@ -43,11 +41,7 @@ def parse_args():
 
     return parser.parse_args()
 
-
 args = parse_args()
-
-# name of the analysis engine
-ENGINE_PATH = args.engine
 
 
 def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, length = 30, fill = '█', printEnd = "\r"):
@@ -59,15 +53,12 @@ def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, 
     if iteration == total: 
         print()
 
-
-# accuracy logic by lichess (https://lichess.org/page/accuracy)
+# Accuracy logic by lichess (https://lichess.org/page/accuracy)
 def get_accuracy_of_move(win_b, win_a):
     return 103.1668 * math.exp(-0.04354 * ((win_b) - (win_a))) - 3.1669
 
-
 def get_accuracy_of_cp(a):
     return 103.1668 * math.exp(-0.04354 * a) - 3.1669
-
 
 def calculate_wp(centipawns):
     return 50 + 50 * (2 / (1 + math.exp(-0.00368208 * centipawns)) - 1)
@@ -94,16 +85,15 @@ def apply_elo_model(acc_w, acc_b):
 
 
 def analyze(pgn):
-    game = chess.pgn.read_game(pgn)
-    engine = chess.engine.SimpleEngine.popen_uci(ENGINE_PATH)
-    game_annot = chess.pgn.Game()
+    game               = chess.pgn.read_game(pgn)
+    engine             = chess.engine.SimpleEngine.popen_uci(args.engine)
+    game_annot         = chess.pgn.Game()
     game_annot.headers = game.headers
-    opening_book = chess.polyglot.open_reader(BOOK_PATH)
+    opening_book       = chess.polyglot.open_reader(BOOK_PATH)
+    analyzed_moves     = []
+    board              = game.board()
 
-    analyzed_moves = []
-    board = game.board()
-
-    # analyze all the moves
+    # Analyze all the moves with the engine
     next_best_move = None
     in_book = True
     for move in game.mainline():
@@ -118,9 +108,9 @@ def analyze(pgn):
             if not book:
                 in_book = False
 
-        forced = len(list(board.legal_moves)) == 1
+        forced = len(list(board.legal_moves)) == 1 # A move is "forced" when there is only one possible move
 
-        board.push(move.move)
+        board.push(move.move) # Step to the next board position
         
         if board.is_checkmate():
             analyzed_moves.append(AnalyzedMove(
@@ -133,15 +123,14 @@ def analyze(pgn):
                 comment = move.comment
             ))
             break
-
-        step = engine.play(board, chess.engine.Limit(depth=args.depth), info=chess.engine.Info.ALL)
         
+        # Get the engine analysis of the current position
+        step = engine.play(board, chess.engine.Limit(depth=args.depth), info=chess.engine.Info.ALL)
         score = step.info["score"].white().score(mate_score=MATE_THRES)
 
         printProgressBar(len(analyzed_moves), len(list(game.mainline_moves())), suffix=f"{move.move} - {(next_best_move if next_best_move is not None else None)}   ")
 
         best = next_best_move == move.move
-
         next_best_move = step.move
         
         analyzed_moves.append(AnalyzedMove(
@@ -191,8 +180,7 @@ def analyze(pgn):
             centpawn_n[analyzed_move.turn] += 1
         else:
             winchance_loss[analyzed_move.turn] += calculate_wp(max((previous_score - analyzed_move.score) if analyzed_move.turn else -(previous_score - analyzed_move.score), 0)) - 50
-            
-            centpawn_n[analyzed_move.turn] += 1
+            centpawn_n[analyzed_move.turn]     += 1
         
         accuracy[analyzed_move.turn].append(acc)
 
@@ -241,6 +229,7 @@ def analyze(pgn):
     print(f"\nWhite Accuracy: {round(get_accuracy_of_cp((winchance_loss[1])), 1)}\nBlack Accuracy: {round(get_accuracy_of_cp((winchance_loss[0])), 1)}")
     print(f"White Winchance Loss: {round(winchance_loss[1])}\nBlack Winchance Loss: {round(winchance_loss[0])}")
 
+    # This is the SGP model
     apply_elo_model(get_accuracy_of_cp((winchance_loss[1])), get_accuracy_of_cp((winchance_loss[0])))
 
     cleaned_name = args.pgn.replace(".pgn", "")
